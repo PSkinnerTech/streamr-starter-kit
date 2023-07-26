@@ -1,12 +1,10 @@
 const StreamrClient = require("streamr-client");
 
-const streamId = "streams.dimo.eth/firehose/weather";
-
 interface Data {
   data: any;
 }
 
-const main = async (handleData: (data: Data) => void) => {
+const main = async (streamId: string, handleData: (data: Data) => void) => {
   const client = new StreamrClient({
     auth: {
       privateKey: process.env.PRIVATE_KEY,

@@ -1,56 +1,45 @@
-import React, { useEffect, useState } from "react";
-import main from "../StreamrClient";
+import { useEffect, useState } from "react";
+import StreamrClient from "../StreamrClient";
 
 interface StreamrData {
-  data: {
-    ambientTemp: number;
-    latitude: number;
-    longitude: number;
-  };
+  data: any;
 }
 
 export default function Home() {
   const [streamrData, setStreamrData] = useState<StreamrData | null>(null);
+  const [streamId, setStreamId] = useState("streams.dimo.eth/firehose/weather"); // Default streamId
 
   useEffect(() => {
-    const handleData = (data: StreamrData) => {
-      console.log("Received message:", data);
+    StreamrClient(streamId, (data: StreamrData) => {
       setStreamrData(data);
-    };
-    main(handleData);
-  }, []);
+    });
+  }, [streamId]);
 
-  useEffect(() => {
-    console.log(streamrData);
-  }, [streamrData]);
+  const handleStreamChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setStreamId(event.target.value);
+  };
 
   return (
-    <div>
-      <h1 className="text-center text-2xl font-bold py-4">
-        DIMO Streamr Data Stream Demo
-      </h1>
-      {streamrData && (
-        <div className="flex justify-around">
-          <div>
-            <h3 className="text-xl font-bold mb-2 text-center">Data Stream</h3>
-            {Object.keys(streamrData.data).map((key, index) => (
-              <p key={index} className="text-center">
-                {key}: {streamrData.data[key as keyof StreamrData["data"]]}
-              </p>
-            ))}
-          </div>
-          <div>
-            <h3 className="text-xl font-bold mb-2 text-center">
-              Data Variables
-            </h3>
-            {Object.keys(streamrData.data).map((key, index) => (
-              <p key={index} className="text-center">
-                {key}
-              </p>
-            ))}
-          </div>
+    <div className="p-5">
+      <h2>Select Stream</h2>
+      <select value={streamId} onChange={handleStreamChange} className="mb-5">
+        <option value="streams.dimo.eth/firehose/weather">
+          Weather Stream
+        </option>
+        <option value="streamr.eth/metrics/nodes/firehose/sec">
+          Node Metrics Stream
+        </option>
+      </select>
+      <div className="flex justify-between">
+        <div className="w-2/5 border border-white rounded p-2">
+          <h2 className="text-2xl underline-offset-1">Data Stream</h2>
+          <pre>{JSON.stringify(streamrData, null, 2)}</pre>
         </div>
-      )}
+        <div className="w-2/5 border border-white rounded p-2">
+          <h2 className="text-2xl underline-offset-1">Data Variables</h2>
+          {streamrData && <pre>{Object.keys(streamrData.data).join("\n")}</pre>}
+        </div>
+      </div>
     </div>
   );
 }
