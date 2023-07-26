@@ -34,5 +34,3 @@ const main = async (handleData: (data: Data) => void) => {
 };
 
 export default main;
-
-// privateKey: crypto.randomBytes(32).toString("hex"),
