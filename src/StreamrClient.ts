@@ -4,6 +4,8 @@ interface Data {
   data: any;
 }
 
+let currentSubscriptions: any[] = [];
+
 const main = async (streamId: string, handleData: (data: Data) => void) => {
   const client = new StreamrClient({
     auth: {
@@ -22,13 +24,20 @@ const main = async (streamId: string, handleData: (data: Data) => void) => {
     handleData(content); // Pass the data to the callback function
   };
 
-  const subscriptions = await Promise.all(
+  // Unsubscribe from current subscriptions if they exist
+  if (currentSubscriptions.length > 0) {
+    currentSubscriptions.forEach(async (subscription) => {
+      await subscription.unsubscribe();
+    });
+  }
+
+  currentSubscriptions = await Promise.all(
     stream.getStreamParts().map(async (partition: any) => {
       return await client.subscribe(partition, onMessage);
     })
   );
 
-  return { client, subscriptions };
+  return { client, currentSubscriptions };
 };
 
 export default main;
