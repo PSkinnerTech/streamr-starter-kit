@@ -21,10 +21,9 @@ const main = async (streamId: string, handleData: (data: Data) => void) => {
 
   const onMessage = (content: any) => {
     console.log(JSON.stringify(content, undefined, 2));
-    handleData(content); // Pass the data to the callback function
+    handleData(content);
   };
 
-  // Unsubscribe from current subscriptions if they exist
   if (currentSubscriptions.length > 0) {
     currentSubscriptions.forEach(async (subscription) => {
       await subscription.unsubscribe();
