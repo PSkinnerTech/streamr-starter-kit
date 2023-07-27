@@ -7,71 +7,68 @@ interface StreamrData {
 
 export default function Home() {
   const [streamrData, setStreamrData] = useState<StreamrData | null>(null);
-  const [streamrDataHistory, setStreamrDataHistory] = useState<StreamrData[]>(
-    []
-  );
   const [streamId, setStreamId] = useState<string>(
-    "streams.dimo.eth/firehose/weather"
+    "streamr.eth/metrics/nodes/firehose/sec"
   );
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 7000);
     subscribeToStream(streamId, (data: any) => {
       setStreamrData(data);
-      setStreamrDataHistory((prevData) => {
-        const newData = [...prevData, data];
-        // If the length of the data stream is more than 100, remove the oldest data
-        if (newData.length > 100) {
-          newData.shift();
-        }
-        return newData;
-      });
     });
+    return () => clearTimeout(timer);
   }, [streamId]);
 
-  const handleStreamChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleStreamChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setStreamId(event.target.value);
   };
 
   return (
     <div className="p-5">
       <h2 className="text-4xl pb-1">Select Stream</h2>
-      <select value={streamId} onChange={handleStreamChange} className="mb-5">
-        <option
-          value="streams.dimo.eth/firehose/weather"
-          className="text-black"
-        >
-          Weather Stream
-        </option>
-        <option
+      <div className="mb-5">
+        <input
+          type="radio"
+          id="weatherStream"
+          name="stream"
           value="streamr.eth/metrics/nodes/firehose/sec"
-          className="text-black"
-        >
-          Node Metrics Stream
-        </option>
-      </select>
-      <div className="flex justify-between px-10">
-        {" "}
-        {/* 2.5% padding on the left and right side */}
-        <div className="w-2/5 border border-white rounded p-2">
-          {" "}
-          {/* 40% width for the box */}
+          checked={streamId === "streamr.eth/metrics/nodes/firehose/sec"}
+          onChange={handleStreamChange}
+        />
+        <label htmlFor="weatherStream">Node Metrics Stream</label>
+        <br />
+        <input
+          type="radio"
+          id="nodeMetricsStream"
+          name="stream"
+          value="streams.dimo.eth/firehose/weather"
+          checked={streamId === "streams.dimo.eth/firehose/weather"}
+          onChange={handleStreamChange}
+        />
+        <label htmlFor="nodeMetricsStream">Weather Stream</label>
+      </div>
+      <div className="flex justify-between">
+        <div className="w-2/5 border border-white rounded p-2 h-[500px] overflow-auto">
           <h2 className="text-4xl pb-1 border-b-2 border-white">Data Stream</h2>
-          <pre className="overflow-auto">
-            {JSON.stringify(streamrData, null, 2)}
-          </pre>{" "}
-          {/* Text wrapping */}
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
+            <pre>{JSON.stringify(streamrData, null, 2)}</pre>
+          )}
         </div>
-        <div className="w-1/10"></div> {/* 5% padding between the boxes */}
-        <div className="w-2/5 border border-white rounded p-2">
-          {" "}
-          {/* 40% width for the box */}
+        <div className="w-2/5 border border-white rounded p-2 h-[500px] overflow-auto">
           <h2 className="text-4xl pb-1 border-b-2 border-white">
             Data Variables
           </h2>
-          {streamrData && streamrData.data && (
-            <pre className="overflow-auto">
-              {Object.keys(streamrData.data).join("\n")}
-            </pre>
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
+            streamrData &&
+            streamrData.data && (
+              <pre>{Object.keys(streamrData.data).join("\n")}</pre>
+            )
           )}
         </div>
       </div>
